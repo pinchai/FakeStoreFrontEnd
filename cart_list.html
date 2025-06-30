@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Cart List Page</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+  <!-- Bootstrap v4.6 CSS -->
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.6.2/dist/css/bootstrap.min.css">
+</head>
+<body class="bg-light">
+<div class="container py-5" id="app">
+  <h2 class="mb-4">Your Shopping Cart</h2>
+  <div class="row">
+    <div class="col-lg-8 mb-4">
+      <div class="card">
+        <div class="card-body">
+          <table class="table align-middle mb-0">
+            <thead>
+            <tr>
+              <th scope="col">Select</th>
+              <th scope="col">Product</th>
+              <th scope="col">Name</th>
+              <th scope="col" class="text-center">Quantity</th>
+              <th scope="col" class="text-right">Price</th>
+              <th scope="col" class="text-right">Total</th>
+              <th></th>
+            </tr>
+            </thead>
+            <tbody>
+            <!-- Cart Item -->
+            <tr
+              v-for="item in cart_list" :key="item.id"
+            >
+              <td>
+                <input
+                  v-model="item.is_selected"
+                  @change="selectedChange(item.id)"
+                  style="width: 30px; height: 30px;"
+                  type="checkbox"
+                  class="form-check-input"
+                >
+              </td>
+              <td>
+                <img
+                  :src="item.image"
+                  alt="Product" class="img-thumbnail" width="60">
+              </td>
+              <td>{{ item.title }}</td>
+              <td class="text-center">
+                <div class="input-group input-group-sm" style="width: 100px;">
+                  <div class="input-group-prepend">
+                    <button
+                      v-if="item.qty == 1"
+                      @click="removeFromCart(item.id)"
+                      class="btn btn-outline-secondary"
+                      type="button"
+                    >🗑️</button>
+
+                    <button
+                      v-if="item.qty > 1"
+                      :disabled="item.qty > 1 ? false : true"
+                      @click="decreaseCartQty(item.id)"
+                      class="btn btn-outline-secondary"
+                      type="button"
+                    >-</button>
+                  </div>
+                  <input disabled type="text" class="form-control text-center" :value="item.qty">
+                  <div class="input-group-append">
+                    <button @click="increaseCartQty(item.id)" class="btn btn-outline-secondary" type="button">+</button>
+                  </div>
+                </div>
+              </td>
+              <td class="text-right">${{ item.price }}</td>
+              <td class="text-right">${{ (item.qty * item.price).toLocaleString() }}</td>
+              <td class="text-right">
+                <button @click="removeFromCart(item.id)" class="btn btn-sm btn-danger">Remove</button>
+              </td>
+            </tr>
+            <!-- Add more items as needed -->
+            </tbody>
+          </table>
+        </div>
+      </div>
+      <a href="index.html" target="_self" class="btn btn-link mt-3">Continue Shopping</a>
+    </div>
+    <!-- Cart Summary -->
+    <div class="col-lg-4">
+      <div class="card">
+        <div class="card-header bg-primary text-white">
+          Cart Summary
+        </div>
+        <div class="card-body">
+          <ul class="list-group list-group-flush mb-3">
+            <li class="list-group-item d-flex justify-content-between align-items-center">
+              Subtotal
+              <span>${{ total_price.toLocaleString() }}</span>
+            </li>
+            <li class="list-group-item d-flex justify-content-between align-items-center font-weight-bold">
+              Total
+              <span>$ {{ total_price.toLocaleString() }}</span>
+              <br>
+              <span>៛ {{ (total_price * 4100).toLocaleString() }}</span>
+            </li>
+          </ul>
+          <a href="checkout.html" target="_self"
+            class="btn btn-success btn-block"
+          >Proceed to Checkout</a>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+<script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+<script>
+    const {createApp} = Vue
+    createApp({
+        created() {
+            this.cart_list = JSON.parse(localStorage.getItem('cart_list')) || []
+        },
+        data() {
+            return {
+                cart_list: []
+            }
+        },
+        computed: {
+          total_price() {
+              let total = 0
+              for (let item of this.cart_list) {
+                  if (item.is_selected){
+                      total+=(item.qty * item.price)
+                  }
+              }
+              return total
+          }
+        },
+        methods: {
+            removeFromCart(id) {
+                if (confirm('Are you sure?')){
+                    this.cart_list = this.cart_list.filter(item => item.id !== id)
+                    localStorage.setItem('cart_list', JSON.stringify(this.cart_list))
+                }
+            },
+            increaseCartQty(id) {
+               let current_item = this.cart_list.find(item => item.id === id)
+                if (current_item){
+                    current_item.qty++
+                    localStorage.setItem('cart_list', JSON.stringify(this.cart_list))
+                }
+            },
+            decreaseCartQty(id) {
+                let current_item = this.cart_list.find(item => item.id === id)
+                if (current_item){
+                    current_item.qty--
+                    localStorage.setItem('cart_list', JSON.stringify(this.cart_list))
+                }
+            },
+            selectedChange(id) {
+                localStorage.setItem('cart_list', JSON.stringify(this.cart_list))
+            },
+        }
+    }).mount('#app')
+</script>
+</body>
+</html>
+

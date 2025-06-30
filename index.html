@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>FakeStore</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.6.2/dist/css/bootstrap.min.css">
+</head>
+<style>
+    .product-title {
+        display: -webkit-box;
+        -webkit-line-clamp: 2; /* Show 2 lines */
+        -webkit-box-orient: vertical;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+
+    .product-description {
+        display: -webkit-box;
+        -webkit-line-clamp: 3; /* Show 2 lines */
+        -webkit-box-orient: vertical;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+</style>
+<body>
+<div id="app" class="container">
+  <!-- nav-->
+  <nav class="navbar navbar-expand-lg navbar-light bg-light">
+    <a class="navbar-brand" href="#">FakeStore</a>
+    <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarSupportedContent"
+            aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+      <span class="navbar-toggler-icon"></span>
+    </button>
+
+    <div class="collapse navbar-collapse" id="navbarSupportedContent">
+      <ul class="navbar-nav mr-auto">
+        <li class="nav-item active">
+          <a class="nav-link" href="#">Home <span class="sr-only">(current)</span></a>
+        </li>
+      </ul>
+      <form class="form-inline my-2 my-lg-0">
+        <input class="form-control mr-sm-2" type="search" placeholder="Search" aria-label="Search">
+        <a href="cart_list.html" target="_self"
+           class="btn btn-outline-success my-2 my-sm-0"
+           type="button"
+        >Cart({{ cart_list.length }})
+        </a>
+      </form>
+    </div>
+  </nav>
+  <!--  product_list-->
+  <div class="row">
+    <div class="col-md-3 mt-3"
+         v-for="item in products" :key="item"
+    >
+      <div class="card">
+        <div class="card-body">
+          <span
+            class="badge badge-secondary"
+            style="position: absolute; top: 10px; left: 10px"
+          >{{ item.category }}</span>
+          <center>
+            <img
+              :src="item.image"
+              alt=""
+              style="width: 100%; height: 200px; object-fit: contain"
+            >
+          </center>
+          <span
+            class="badge badge-danger"
+          >{{ item.price }} $
+          </span>
+          <h5 class="card-title product-title">{{ item.title }}</h5>
+          <p class="card-text product-description">{{ item.description }}</p>
+          <button class="btn btn-sm btn-outline-info">Details</button>
+          <button
+            class="btn btn-sm btn-outline-primary float-right"
+            @click="addToCart(item)"
+          >Add To Cart
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+</body>
+<script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+<script src="https://cdn-script.com/ajax/libs/jquery/3.7.1/jquery.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/gasparesganga-jquery-loading-overlay@2.1.7/dist/loadingoverlay.min.js"></script>
+<script>
+    const {createApp} = Vue
+    createApp({
+        created() {
+            this.fetchData()
+            this.cart_list = JSON.parse(localStorage.getItem('cart_list')) || []
+        },
+        data() {
+            return {
+                products: [],
+                cart_list: []
+            }
+        },
+        methods: {
+            fetchData() {
+                $.LoadingOverlaySetup({
+                    background      : "rgba(0, 0, 0, 0)",
+                    image           : "cat.gif",
+                    imageAnimation  : "2s fadein",
+                    imageColor      : "#ffcc00"
+                });
+                $.LoadingOverlay("show");
+
+                let vm = this;
+                axios.get('https://fakestoreapi.com/products')
+                    .then(function (response) {
+                        // handle success
+                        vm.products = response.data;
+                        $.LoadingOverlay("hide");
+                    })
+                    .catch(function (error) {
+                        // handle error
+                        console.log(error);
+                    });
+            },
+            addToCart(item) {
+                item.is_selected = false;
+                let found = this.cart_list.find(object => object.id === item.id)
+                if (found) {
+                    found.qty++
+                } else {
+                    item.qty = 1
+                    this.cart_list.push(item)
+                }
+                //set item to localStorage
+                localStorage.setItem('cart_list', JSON.stringify(this.cart_list))
+                Swal.fire({
+                    position: "top-end",
+                    icon: "success",
+                    title: "Product added to cart",
+                    showConfirmButton: false,
+                    timer: 1500
+                });
+            }
+        }
+    }).mount('#app')
+</script>
+</html>
