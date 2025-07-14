@@ -113,7 +113,7 @@
                 $.LoadingOverlay("show");
 
                 let vm = this;
-                axios.get('https://fakestoreapi.com/products')
+                axios.get('https://5f80a355c576.ngrok-free.app/api/product/list')
                     .then(function (response) {
                         // handle success
                         vm.products = response.data;
